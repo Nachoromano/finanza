@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FLUJO — Finanzas personales</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;
+  --accent:#ff4d1a;--accent2:#ff7a3d;--accent-dim:rgba(255,77,26,.12);
+  --text:#f0ece6;--text2:#888880;--text3:#555550;
+  --border:rgba(255,255,255,.07);--border-a:rgba(255,77,26,.35);
+  --green:#2ecc71;--green-dim:rgba(46,204,113,.12);
+  --amber:#f39c12;--red:#e74c3c;
+  --sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .25s ease;}
+.logo{padding:24px 22px 20px;border-bottom:1px solid var(--border);}
+.logo-word{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.05em;line-height:1;}
+.logo-word span{color:var(--accent);}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:3px;font-family:'DM Mono',monospace;}
+.nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border:1px solid transparent;user-select:none;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--accent-dim);color:var(--accent2);border-color:var(--border-a);}
+.nav-icon{width:16px;text-align:center;font-size:14px;}
+.sidebar-footer{padding:14px 14px 22px;border-top:1px solid var(--border);}
+.month-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.close-month-btn{width:100%;padding:9px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;letter-spacing:.03em;}
+.close-month-btn:hover{background:var(--accent2);}
+.mob-header{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);z-index:99;align-items:center;padding:0 16px;gap:12px;}
+.mob-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.05em;}
+.mob-logo span{color:var(--accent);}
+.mob-menu-btn{margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:20px;padding:4px 8px;line-height:1;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;}
+.overlay.show{display:block;}
+.main{margin-left:var(--sidebar);flex:1;padding:28px 28px 80px;max-width:860px;}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.04em;line-height:1;}
+.page-title span{color:var(--accent);}
+.salary-block{display:flex;align-items:center;gap:8px;}
+.salary-label{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;}
+.salary-input-wrap{position:relative;}
+.salary-prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--accent);font-weight:500;font-size:14px;font-family:'DM Mono',monospace;}
+.salary-input{background:var(--bg3);border:1px solid var(--border-a);border-radius:8px;color:var(--text);font-size:14px;font-weight:500;font-family:'DM Mono',monospace;padding:8px 10px 8px 26px;width:150px;outline:none;transition:border-color .15s;}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;font-family:'DM Mono',monospace;margin-bottom:8px;}
+.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.03em;line-height:1;}
+.kpi-val.ok{color:var(--green);}
+.kpi-val.accent{color:var(--accent);}
+.panel{display:none;}
+.panel.active{display:block;}
+.wallet-card{background:var(--bg2);border:1px solid var(--border-a);border-radius:12px;padding:20px 22px;margin-bottom:24px;position:relative;overflow:hidden;}
+.wallet-ars{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.03em;color:var(--green);line-height:1;}
+.wallet-usd{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.03em;color:var(--amber);line-height:1;}
+.cost-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px;}
+.add-form{background:var(--bg2);border:1px dashed var(--border);border-radius:10px;padding:14px 18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;}
+.add-btn{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:8px 16px;cursor:pointer;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border-a);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);opacity:0;transition:all .3s;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.mob-header{display:flex;}.main{margin-left:0;padding:68px 16px 80px;}.kpi-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="mob-header"><div class="mob-logo">FLU<span>JO</span></div><button class="mob-menu-btn" onclick="toggleSidebar()">☰</button></header>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<div class="shell">
+<aside class="sidebar" id="sidebar">
+  <div class="logo"><div class="logo-word">FLU<span>JO</span></div><div class="logo-sub">finanzas personales</div></div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="goPanel('dashboard',this)"><span class="nav-icon">▣</span>Dashboard</div>
+    <div class="nav-item" onclick="goPanel('fixed',this)"><span class="nav-icon">◈</span>Costos fijos</div>
+    <div class="nav-item" onclick="goPanel('variable',this)"><span class="nav-icon">◉</span>Costos variables</div>
+    <div class="nav-item" onclick="goPanel('register',this)"><span class="nav-icon">⊕</span>Registrar gasto</div>
+  </nav>
+  <div class="sidebar-footer"><div class="month-badge" id="current-month-label"></div><button class="close-month-btn" onclick="closeMonth()">Cerrar mes →</button></div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title-txt">DASH<span>BOARD</span></div>
+    <div class="salary-block">
+      <span class="salary-label">Sueldo</span>
+      <div class="salary-input-wrap"><span class="salary-prefix">$</span><input class="salary-input" type="number" id="salary" oninput="onSalaryChange()"/></div>
+    </div>
+  </div>
+  <div class="kpi-row" id="kpi-row"></div>
+  <div class="panel active" id="panel-dashboard"><div id="wallet-section"></div><div id="dash-overview"></div></div>
+  <div class="panel" id="panel-fixed">
+    <div id="fixed-list"></div>
+    <div class="add-form"><input type="text" id="fixed-name" placeholder="Nombre"/><input type="number" id="fixed-amount" placeholder="Monto"/><button class="add-btn" onclick="addFixed()">+ Agregar</button></div>
+  </div>
+  <div class="panel" id="panel-variable">
+    <div id="var-list"></div>
+    <div class="add-form"><input type="text" id="var-name" placeholder="Nombre"/><input type="number" id="var-budget" placeholder="Presupuesto"/><button class="add-btn" onclick="addVar()">+ Agregar</button></div>
+  </div>
+  <div class="panel" id="panel-register">
+    <div class="add-form"><select id="reg-cat"></select><input type="number" id="reg-amount" placeholder="Monto"/><button class="add-btn" onclick="addExpense()">Registrar</button></div>
+    <div id="register-list" style="margin-top:20px;"></div>
+  </div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const DEFAULT_STATE = {salary:200000, fixed:[], variable:[], expenses:[], history:[], savings:0, nextId:1, month:new Date().getMonth(), year:new Date().getFullYear()};
+let S = JSON.parse(localStorage.getItem('flujo_v2')) || DEFAULT_STATE;
+let usdRate = 1400;
+
+function saveState(){ localStorage.setItem('flujo_v2', JSON.stringify(S)); }
+function fmt(n){ return '$'+Math.round(n).toLocaleString('es-AR'); }
+function onSalaryChange(){ S.salary = parseFloat(document.getElementById('salary').value)||0; saveState(); render(); }
+
+function render(){
+  document.getElementById('salary').value = S.salary;
+  document.getElementById('current-month-label').textContent = S.month + ' ' + S.year;
+  const tf = S.fixed.reduce((s,f)=>s+f.amount,0);
+  const ts = S.expenses.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('kpi-row').innerHTML = `<div class="kpi"><div class="kpi-label">Fijos</div><div class="kpi-val accent">${fmt(tf)}</div></div><div class="kpi"><div class="kpi-label">Gastado</div><div class="kpi-val ok">${fmt(ts)}</div></div>`;
+  renderWallet();
+  renderFixed();
+  renderVar();
+}
+
+function renderWallet(){
+  document.getElementById('wallet-section').innerHTML = `<div class="wallet-card"><div>AHORRO: <span class="wallet-ars">${fmt(S.savings)}</span> | <span class="wallet-usd">U$S ${(S.savings/usdRate).toFixed(2)}</span></div></div>`;
+}
+
+function addFixed(){
+  const n = document.getElementById('fixed-name').value;
+  const a = parseFloat(document.getElementById('fixed-amount').value);
+  if(n && a){ S.fixed.push({id:S.nextId++, name:n, amount:a}); saveState(); render(); }
+}
+
+function addVar(){
+  const n = document.getElementById('var-name').value;
+  const b = parseFloat(document.getElementById('var-budget').value);
+  if(n && b){ S.variable.push({id:S.nextId++, name:n, budget:b, bonus:0}); saveState(); render(); }
+}
+
+function addExpense(){
+  const id = parseInt(document.getElementById('reg-cat').value);
+  const a = parseFloat(document.getElementById('reg-amount').value);
+  if(id && a){ S.expenses.push({varId:id, amount:a, date:new Date()}); saveState(); render(); }
+}
+
+function renderFixed(){ document.getElementById('fixed-list').innerHTML = S.fixed.map(f=>`<div class="cost-card">${f.name}: ${fmt(f.amount)}</div>`).join(''); }
+function renderVar(){ 
+  document.getElementById('var-list').innerHTML = S.variable.map(v=>`<div class="cost-card">${v.name}: Presup. ${fmt(v.budget)}</div>`).join('');
+  document.getElementById('reg-cat').innerHTML = S.variable.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+}
+
+function goPanel(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+function closeMonth(){ const saved = S.variable.reduce((s,v)=>s+v.budget,0) - S.expenses.reduce((s,e)=>s+e.amount,0); S.savings += Math.max(0, saved); S.expenses = []; saveState(); render(); alert('Mes cerrado'); }
+
+render();
+</script>
+</body>
+</html>
